@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: hyde
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+
+logging:
+  file:
+    name: logs/hyde.log
+  level:
+    root: INFO
+    net.ottleys.hyde: DEBUG
+  logback:
+    rollingpolicy:
+      file-name-pattern: "logs/hyde-%d{yyyy-MM-dd}.%i.log.gz"
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 1GB
+
+hyde:
+  #content-path: ${HYDE_CONTENT_PATH:./content}
+  content-path: /Users/jottley/Documents/GitHub/jottley.github.io
+  site-title: "Hyde: A Jekyll Dynamic Viewer"
+  site-description: "Dynamic Markdown Viewer rendered at runtime in Spring Boot"
+  default-author: "Site Author"
+  cache-enabled: true
+  excerpt-length: 220

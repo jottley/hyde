@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head('Page Not Found (404)')}">
+    <title>404 - Page Not Found</title>
+</head>
+<body>
+    <!-- Top Navbar -->
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <!-- Mobile Offcanvas Sidebar -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" th:text="${siteConfig.title}">Navigation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div th:replace="~{layout :: sidebarContent}"></div>
+        </div>
+    </div>
+
+    <!-- Main Container Layout -->
+    <div class="d-flex" style="min-height: calc(100vh - 56px);">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-container d-none d-lg-block flex-shrink-0">
+            <div th:replace="~{layout :: sidebarContent}"></div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow-1 p-4 p-md-5" style="min-width: 0;">
+                <div class="text-center py-5">
+                    <div class="display-1 text-danger fw-bold">404</div>
+                    <h2 class="h3 fw-bold mb-3">Document Not Found</h2>
+                    <p class="text-muted mb-4">
+                        The requested page <code class="text-danger" th:text="${attemptedUrl}">/unknown</code> does not exist in the Markdown content directory.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a th:href="@{/}" class="btn btn-primary"><i class="bi bi-house me-1"></i>Go to Home</a>
+                        <a th:href="@{/posts}" class="btn btn-outline-secondary"><i class="bi bi-journal-text me-1"></i>View All Posts</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+    <!-- Footer -->
+    <div th:replace="~{layout :: footer}"></div>
+
+    <!-- Scripts -->
+    <div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>

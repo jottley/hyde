@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" data-bs-theme="light">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' - ' + siteConfig.title : siteConfig.title}">Hyde: A Jekyll Markdown Viewer</title>
+
+    <!-- Bootstrap 5.3 & Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha256-2FMn2Zx6PuH5tdBQDRNwrOo60ts5wWPC9R8jK67b3t4=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css" integrity="sha256-ecmcGh4Ok3+AilgWVyi37QCADwLvXvz80Q3+cUZOZ10=" crossorigin="anonymous">
+
+    <!-- Prism Syntax Highlighting -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism-tomorrow.min.css" integrity="sha256-GxX+KXGZigSK67YPJvbu12EiBx257zuZWr0AMiT1Kpg=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css" integrity="sha256-4CROCOz16nRjanuxMghkzZzCOdmwLXxFqCMCW7XG/lA=" crossorigin="anonymous">
+
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --toc-width: 240px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+        }
+
+        /* Sidebar styling */
+        .sidebar-container {
+            width: var(--sidebar-width);
+            min-height: calc(100vh - 56px);
+            height: calc(100vh - 56px);
+            position: sticky;
+            top: 56px;
+            overflow-y: auto;
+            border-right: 1px solid var(--bs-border-color);
+            background-color: var(--bs-tertiary-bg);
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar-container {
+                width: 100%;
+                position: static;
+                height: auto;
+                min-height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--bs-border-color);
+            }
+        }
+
+        /* Markdown typography */
+        .markdown-body {
+            font-size: 1.05rem;
+            line-height: 1.75;
+        }
+
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+            font-weight: 700;
+            margin-top: 1.6rem;
+            margin-bottom: 0.9rem;
+            scroll-margin-top: 70px;
+        }
+
+        .markdown-body h1 {
+            border-bottom: 1px solid var(--bs-border-color);
+            padding-bottom: 0.4rem;
+        }
+
+        .markdown-body h2 {
+            border-bottom: 1px solid var(--bs-border-color-translucent);
+            padding-bottom: 0.3rem;
+        }
+
+        .markdown-body pre {
+            border-radius: 8px;
+            position: relative;
+            padding: 1rem;
+            background-color: #2d3748 !important;
+            margin: 1.2rem 0;
+        }
+
+        .markdown-body code:not(pre code) {
+            background-color: var(--bs-secondary-bg);
+            color: var(--bs-danger);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid var(--bs-primary);
+            padding: 0.6rem 1.2rem;
+            margin: 1.2rem 0;
+            background-color: var(--bs-secondary-bg);
+            border-radius: 0 6px 6px 0;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            margin: 1.5rem 0;
+            border-collapse: collapse;
+        }
+
+        .markdown-body table th, .markdown-body table td {
+            border: 1px solid var(--bs-border-color);
+            padding: 0.6rem 0.9rem;
+        }
+
+        .markdown-body table th {
+            background-color: var(--bs-tertiary-bg);
+            font-weight: 600;
+        }
+
+        .markdown-body ul.task-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .markdown-body ul.task-list input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        /* Sticky Table of Contents */
+        .toc-sidebar {
+            position: sticky;
+            top: 70px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            font-size: 0.88rem;
+        }
+
+        .toc-link {
+            display: block;
+            padding: 0.2rem 0.5rem;
+            color: var(--bs-secondary-color);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .toc-link:hover, .toc-link.active {
+            color: var(--bs-primary);
+            border-left-color: var(--bs-primary);
+            font-weight: 600;
+        }
+
+        .toc-level-2 { padding-left: 1.2rem; }
+        .toc-level-3 { padding-left: 1.8rem; }
+        .toc-level-4 { padding-left: 2.4rem; }
+
+        /* Tree navigation */
+        .nav-tree ul {
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .nav-tree > ul {
+            padding-left: 0;
+        }
+
+        .nav-tree a {
+            text-decoration: none;
+            color: var(--bs-body-color);
+            display: inline-block;
+            padding: 0.15rem 0.3rem;
+            border-radius: 4px;
+        }
+
+        .nav-tree a:hover {
+            background-color: var(--bs-secondary-bg);
+            color: var(--bs-primary);
+        }
+
+        .nav-tree .active {
+            font-weight: 600;
+            color: var(--bs-primary);
+        }
+
+        /* Copy code button */
+        .copy-code-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        pre:hover .copy-code-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <nav th:fragment="navbar" class="navbar navbar-expand-lg border-bottom sticky-top bg-body">
+        <div class="container-fluid px-3">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" th:href="@{/}">
+                <i class="bi bi-markdown-fill text-danger fs-4"></i>
+                <span th:text="${siteConfig.title}">Hyde: A Jekyll Viewer</span>
+            </a>
+
+            <!-- Search form -->
+            <form class="d-none d-md-flex ms-auto me-3" th:action="@{/search}" method="get" style="width: 280px;">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-body border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input class="form-control border-start-0" type="search" name="q" placeholder="Search markdown docs..." th:value="${query}">
+                </div>
+            </form>
+
+            <ul class="navbar-nav me-3 flex-row gap-2">
+                <li class="nav-item">
+                    <a class="nav-link py-1 px-2" th:href="@{/}"><i class="bi bi-house me-1"></i>Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-1 px-2" th:href="@{/posts}"><i class="bi bi-journal-text me-1"></i>Posts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-1 px-2" th:href="@{/docs/getting-started}"><i class="bi bi-book me-1"></i>Docs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-1 px-2" th:href="@{/about}"><i class="bi bi-info-circle me-1"></i>About</a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- Theme Toggle -->
+                <button class="btn btn-sm btn-outline-secondary" id="themeToggleBtn" title="Toggle Light/Dark Theme">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+
+                <!-- Reload cache -->
+                <a class="btn btn-sm btn-outline-primary" th:href="@{/reload}" title="Reload Markdown files from disk">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar fragment -->
+    <div th:fragment="sidebarContent" class="p-3">
+        <!-- Mobile Search -->
+        <form class="d-md-none mb-3" th:action="@{/search}" method="get">
+            <div class="input-group input-group-sm">
+                <input class="form-control" type="search" name="q" placeholder="Search..." th:value="${query}">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            </div>
+        </form>
+
+        <div class="mb-4">
+            <div class="text-uppercase text-muted fw-bold small mb-2"><i class="bi bi-folder2-open me-1"></i>Files & Folders</div>
+            <div class="nav-tree small">
+                <div th:replace="~{::renderTree(${navTree})}"></div>
+            </div>
+        </div>
+
+        <div class="mb-4" th:if="${recentPosts != null and !recentPosts.isEmpty()}">
+            <div class="text-uppercase text-muted fw-bold small mb-2"><i class="bi bi-clock-history me-1"></i>Recent Posts</div>
+            <ul class="list-unstyled small mb-0">
+                <li th:each="post : ${recentPosts}" class="mb-2 text-truncate">
+                    <a class="text-decoration-none" th:href="@{${post.url}}" th:text="${post.title}">Post Title</a>
+                    <div class="text-muted" style="font-size: 0.75rem;" th:text="${post.postDate}">2024-01-01</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="mb-3" th:if="${allTags != null and !allTags.isEmpty()}">
+            <div class="text-uppercase text-muted fw-bold small mb-2"><i class="bi bi-tags me-1"></i>Tags</div>
+            <div class="d-flex flex-wrap gap-1">
+                <a th:each="tagEntry : ${allTags}" th:href="@{'/tags/' + ${tagEntry.key}}" class="badge text-decoration-none bg-secondary-subtle text-secondary-emphasis border">
+                    <span th:text="'#' + ${tagEntry.key}">tag</span>
+                    <span class="opacity-75 ms-1" th:text="'(' + ${tagEntry.value} + ')'">(1)</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recursive Tree Navigation Fragment -->
+    <ul th:fragment="renderTree(node)">
+        <li th:each="child : ${node.children}" class="py-1">
+            <div th:if="${child.directory}">
+                <span class="text-muted"><i class="bi bi-folder me-1 text-warning"></i><strong th:text="${child.name}">Folder</strong></span>
+                <div th:replace="~{::renderTree(${child})}"></div>
+            </div>
+            <div th:if="${!child.directory}">
+                <a th:href="@{${child.url}}" class="d-flex align-items-center gap-1">
+                    <i class="bi bi-file-earmark-text text-secondary"></i>
+                    <span th:text="${child.name}">Doc Name</span>
+                </a>
+            </div>
+        </li>
+    </ul>
+
+    <!-- Footer Fragment -->
+    <footer th:fragment="footer" class="py-4 border-top mt-5 bg-body text-center text-muted small">
+        <div class="container">
+            <p class="mb-1">
+                Rendered dynamically at runtime by <strong th:text="${siteConfig.title}">Hyde: A Jekyll Viewer</strong> &bull; Powered by Spring Boot 4 &amp; CommonMark
+            </p>
+            <p class="mb-0">
+                Zero static HTML generated &bull; Markdown edits on disk update instantly on reload
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts Fragment -->
+    <div th:fragment="scripts">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/prism.js" integrity="sha256-uAFFHZtMvxhXcVqX7K5ELibBEbq24Z/uDoPf2nDMKQA=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha256-AjM0J5XIbiB590BrznLEgZGLnOQWrt62s3BEq65Q/I0=" crossorigin="anonymous"></script>
+        <script>
+            // Theme toggle
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+            const htmlTag = document.documentElement;
+
+            function applyTheme(theme) {
+                htmlTag.setAttribute('data-bs-theme', theme);
+                localStorage.setItem('hyde_viewer_theme', theme);
+                if (theme === 'dark') {
+                    themeIcon.className = 'bi bi-sun';
+                } else {
+                    themeIcon.className = 'bi bi-moon-stars';
+                }
+            }
+
+            const savedTheme = localStorage.getItem('hyde_viewer_theme') ||
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            applyTheme(savedTheme);
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    const current = htmlTag.getAttribute('data-bs-theme');
+                    applyTheme(current === 'dark' ? 'light' : 'dark');
+                });
+            }
+
+            // Add Copy button to pre/code blocks
+            document.querySelectorAll('pre').forEach(pre => {
+                const button = document.createElement('button');
+                button.className = 'btn btn-sm btn-outline-light copy-code-btn';
+                button.innerHTML = '<i class="bi bi-clipboard"></i>';
+                button.title = 'Copy code';
+                button.addEventListener('click', () => {
+                    const code = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        button.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+                        setTimeout(() => button.innerHTML = '<i class="bi bi-clipboard"></i>', 2000);
+                    });
+                });
+                pre.style.position = 'relative';
+                pre.appendChild(button);
+            });
+        </script>
+    </div>
+</body>
+</html>

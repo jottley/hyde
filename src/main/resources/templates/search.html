@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{layout :: head(${query != null ? 'Search: ' + query : 'Search'})}">
+    <title>Search</title>
+</head>
+<body>
+    <!-- Top Navbar -->
+    <div th:replace="~{layout :: navbar}"></div>
+
+    <!-- Mobile Offcanvas Sidebar -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" th:text="${siteConfig.title}">Navigation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div th:replace="~{layout :: sidebarContent}"></div>
+        </div>
+    </div>
+
+    <!-- Main Container Layout -->
+    <div class="d-flex" style="min-height: calc(100vh - 56px);">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-container d-none d-lg-block flex-shrink-0">
+            <div th:replace="~{layout :: sidebarContent}"></div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow-1 p-4 p-md-5" style="min-width: 0;">
+                <div class="max-w-4xl">
+                    <h1 class="display-6 fw-bold mb-3"><i class="bi bi-search me-2 text-primary"></i>Search Content</h1>
+                    
+                    <!-- Search Input Box -->
+                    <form th:action="@{/search}" method="get" class="mb-4">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <input type="search" name="q" class="form-control" placeholder="Search keywords, titles, tags..." th:value="${query}" autofocus>
+                            <button class="btn btn-primary px-4" type="submit">Search</button>
+                        </div>
+                    </form>
+
+                    <!-- Results Info -->
+                    <div th:if="${query != null and !query.isBlank()}" class="mb-3">
+                        <p class="text-muted">
+                            Found <strong th:text="${results != null ? results.size() : 0}">0</strong> result(s) for "<span class="text-body fw-semibold" th:text="${query}">query</span>"
+                        </p>
+                    </div>
+
+                    <!-- Results List -->
+                    <div th:if="${results != null and !results.isEmpty()}" class="d-flex flex-column gap-3">
+                        <div th:each="res : ${results}" class="card border">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center gap-2 small text-muted mb-1">
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis" th:text="${res.document.isPost ? 'POST' : 'PAGE'}">PAGE</span>
+                                    <span th:if="${res.document.postDate != null}" th:text="${res.document.postDate}">2024-01-01</span>
+                                    <span th:text="${res.document.relativePath}">file.md</span>
+                                </div>
+                                <h5 class="card-title fw-bold mb-2">
+                                    <a th:href="@{${res.document.url}}" class="text-decoration-none text-body" th:text="${res.document.title}">Title</a>
+                                </h5>
+                                <p class="card-text text-secondary small mb-2" th:text="${res.matchedSnippet}">
+                                    Snippet matching query...
+                                </p>
+                                <div class="d-flex flex-wrap gap-1" th:if="${res.document.frontMatter.tags != null}">
+                                    <span th:each="tag : ${res.document.frontMatter.tags}" class="badge bg-light text-dark border" th:text="'#' + ${tag}">tag</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No Results -->
+                    <div th:if="${query != null and !query.isBlank() and (results == null or results.isEmpty())}" class="alert alert-light border py-4 text-center">
+                        <i class="bi bi-search fs-1 text-muted d-block mb-2"></i>
+                        <h5>No matches found</h5>
+                        <p class="text-muted">Try searching for other keywords like "spring", "jekyll", "markdown", or "guide".</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+    <!-- Footer -->
+    <div th:replace="~{layout :: footer}"></div>
+
+    <!-- Scripts -->
+    <div th:replace="~{layout :: scripts}"></div>
+</body>
+</html>
