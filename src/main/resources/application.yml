@@ -24,8 +24,7 @@ logging:
       total-size-cap: 1GB
 
 hyde:
-  #content-path: ${HYDE_CONTENT_PATH:./content}
-  content-path: /Users/jottley/Documents/GitHub/jottley.github.io
+  content-path: ${HYDE_CONTENT_PATH:./content}
   site-title: "Hyde: A Jekyll Dynamic Viewer"
   site-description: "Dynamic Markdown Viewer rendered at runtime in Spring Boot"
   default-author: "Site Author"
